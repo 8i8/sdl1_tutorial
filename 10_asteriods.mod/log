@@ -1,0 +1,46 @@
+Failed to load image gfx/firefly.png
+[Thread 0x7fffe7c0b700 (LWP 8908) exited]
+
+=================================================================
+==8903==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 2032 byte(s) in 1 object(s) allocated from:
+    #0 0x7ffff6f0279a in __interceptor_calloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x9879a)
+    #1 0x7ffff12eb770 in g_malloc0 (/lib/x86_64-linux-gnu/libglib-2.0.so.0+0x4f770)
+
+Direct leak of 152 byte(s) in 2 object(s) allocated from:
+    #0 0x7ffff6f02961 in realloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98961)
+    #1 0x7ffff4e111fc  (/usr/lib/x86_64-linux-gnu/libX11.so.6+0x501fc)
+
+Direct leak of 88 byte(s) in 1 object(s) allocated from:
+    #0 0x7ffff6f02602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+    #1 0x7ffff5133826 in pa_xmalloc (/usr/lib/x86_64-linux-gnu/libpulse.so.0+0x38826)
+
+Direct leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x7ffff6f0279a in __interceptor_calloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x9879a)
+    #1 0x7ffff2cd89ae in pa_xmalloc0 (/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so+0x149ae)
+
+Direct leak of 12 byte(s) in 2 object(s) allocated from:
+    #0 0x7ffff6f02602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+    #1 0x7ffff621b489 in __strdup (/lib/x86_64-linux-gnu/libc.so.6+0x8b489)
+    #2 0x7ffff6f0c6c8  (/usr/lib/x86_64-linux-gnu/libasan.so.2+0xa26c8)
+
+Direct leak of 1 byte(s) in 1 object(s) allocated from:
+    #0 0x7ffff6f02602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+    #1 0x7ffff4e1ac17 in _XlcDefaultMapModifiers (/usr/lib/x86_64-linux-gnu/libX11.so.6+0x59c17)
+
+Indirect leak of 1520 byte(s) in 19 object(s) allocated from:
+    #0 0x7ffff6f0279a in __interceptor_calloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x9879a)
+    #1 0x7ffff4e111ce  (/usr/lib/x86_64-linux-gnu/libX11.so.6+0x501ce)
+
+Indirect leak of 128 byte(s) in 16 object(s) allocated from:
+    #0 0x7ffff6f02602 in malloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98602)
+    #1 0x7ffff4e11c55  (/usr/lib/x86_64-linux-gnu/libX11.so.6+0x50c55)
+
+Indirect leak of 80 byte(s) in 3 object(s) allocated from:
+    #0 0x7ffff6f02961 in realloc (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x98961)
+    #1 0x7ffff4e11b98  (/usr/lib/x86_64-linux-gnu/libX11.so.6+0x50b98)
+
+SUMMARY: AddressSanitizer: 4053 byte(s) leaked in 46 allocation(s).
+[Inferior 1 (process 8903) exited with code 027]
+(gdb) quit

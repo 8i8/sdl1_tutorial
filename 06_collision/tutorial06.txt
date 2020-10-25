@@ -1,0 +1,150 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #6 - Collision Detection
+Collision Detection
+
+ Introduction
+
+Collision detection is a vital part of any game. In this tutorial we will look
+at 2D collision detection so that you can fire a bullet and make it hit an
+enemy UFO.  Compile and run tutorial06. You can control the ship by using the
+arrow keys (not the ones on the numeric pad). Pressing the space key will fire
+a bullet, which will move to the right from the ship's current position. If the
+bullet hits one of the UFOs then both it and the UFO will be removed. The
+bullet will also be removed if it goes past the right edge of the screen.
+
+ An indepth look
+
+Most of the code has not changed very much, so we will only look at the
+functions that have changed or that are new. We will start will structs.h We
+update the Entity structure by adding another variable called type:
+
+typedef struct Entity
+{
+    int active, type;
+    int x, y, thinkTime;
+    SDL_Surface *sprite;
+    void (*action)(void);
+    void (*draw)(void);
+} Entity;
+
+The type variable will be used in the collision detection routine, since we
+don't want bullets to collide against each other. In main.c, we call two new
+functions addUFO and doCollisions. These two functions will be looked at later
+on.  We have made a minor change to bullet.c:
+
+entity[i].x = x;
+entity[i].y = y;
+entity[i].action = &moveStandardBullet;
+entity[i].draw = &drawStandardEntity;
+entity[i].sprite = getSprite(BULLET_SPRITE);
+entity[i].type = TYPE_BULLET;
+
+We set the Entity type to TYPE_BULLET. This helps us identify the Entity as
+being a bullet so that we don't try and collide bullets against each other. The
+new file ufo.c, contains all the code for dealing with the UFOs. There are only
+two functions in this file and it is essentially the same as bullet.c:
+
+int i = getFreeEntity();
+
+if (i == -1)
+{
+    printf("Couldn't get a free slot for a UFO!\n");
+ 
+    return;
+}
+
+entity[i].x = x;
+entity[i].y = y;
+entity[i].action = &moveUFO;
+entity[i].draw = &drawStandardEntity;
+entity[i].sprite = getSprite(UFO_SPRITE);
+entity[i].type = TYPE_ENEMY;
+
+As in the bullet.c, we get search for a free Entity to assign to our UFO and
+set its functions. The moveUFO function is below, but it is an empty function,
+essentially meaning that the UFO will do nothing. Finally, we set the Entity
+type to TYPE_ENEMY.  Now we will look at the collision detection. This function
+is located in collisions.c. We will start by looking at the actual detection
+routine itself:
+
+int collision(int x0, int y0, int w0, int h0, int x2, int y2, int w1, int h1)
+{
+    int x1 = x0 + w0;
+    int y1 = y0 + h0;
+
+    int x3 = x2 + w1;
+    int y3 = y2 + h1;
+
+    return !(x1<x2 || x3<x0 || y1<y2 || y3<y0);
+}
+
+The 2D collision detection routine is box to box, which is not accurate, but it
+is very fast. There are routines for pixel perfect collision detection, but we
+will not be looking at these. This function takes 8 parameters, the x, y, width
+and height of the first box and the x, y, width and height of the second box.
+Using these parameters we then construct the coordinates of two rectangles and
+test if they overlap. The function will return 1 if they do and 0 if they
+don't. We will now look at its use:
+
+void doCollisions()
+{
+    int i, j;
+
+    /* Check each entity against the rest, skipping over inactive ones */
+
+    for (i=0;i<MAX_ENTITIES;i++)
+    {
+        if (entity[i].active == 0)
+        {
+            continue;
+        }
+
+        for (j=0;j<MAX_ENTITIES;j++)
+        {
+            /* Don't collide with yourself, inactive entities or entities of the same type */
+            
+            if (i == j || entity[j].active == 0 || entity[j].type == entity[i].type)
+            {
+                continue;
+            }
+            
+            /* Test the collision */
+
+            if (collision(entity[i].x, entity[i].y, entity[i].sprite->w, entity[i].sprite->h,
+            entity[j].x, entity[j].y, entity[j].sprite->w, entity[j].sprite->h) == 1)
+            {
+                /* If a collision occured, remove both Entities */
+                
+                entity[j].active = 0;
+                
+                entity[i].active = 0;
+                
+                break;
+            }
+        }
+    }
+}
+
+In doCollisions we run two loops, one inside the other, since we need to check
+each Entity against all the others. In our outer loop, we first check that the
+Entity we are indexing is actually active, otherwise we simply pass over it.
+Then, in our inner loop, we skip over any Entity that is either the same type
+as the current Entity, is no active or is Entity that we are currently
+checking. We then run our collision test by passing in the x, y, width and
+height of both Entities and checking the response. If we get back a value of 1
+then we set both the Entities to inactive and break out of the inner loop.
+
+ Conclusion
+
+So now you know how to move a sprite, fire a bullet and make it hit something.
+In later tutorials we will look at a health system so that when something is
+hit it doesn't die straight away, but you could always try this yourself. The
+theory is very simple: add a additional variable to the Entity structure to
+store the health. When a collison occurs you decrease the health and if it is
+less than or equal to 0 you remove the Entity.  In the next tutorial we will
+look at SDL_TTF so that we can display information such as the player's score.
+
+ Downloads
+
+Source Code - tutorial06.tar.gz

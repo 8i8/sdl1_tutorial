@@ -1,0 +1,165 @@
+Sunday, 2 October 2011
+Intermediate Tutorials
+Intermediate Game Tutorial #1 - Displaying a Tile Based Map
+
+A tile based map
+ Introduction
+
+We will now look at platform games and the use of tiles to display maps.
+Compile and run tutorial11. The program will read the map data file and display
+the map on the screen. Closing the window or pressing Escape will exit the
+program.
+
+ An indepth look
+
+When creating a tile based game, we break the screen up into a grid. In this
+tutorial we create a tile size of 32x32 pixels giving us 20 tiles horizontally
+and 15 tiles vertically. We will look at structs.h to begin with:
+
+typedef struct Map
+{
+    int tile[MAX_MAP_Y][MAX_MAP_X];
+} Map;
+
+We define our Map structure which contains an multidimensional array of ints.
+The maximum size of this array is defined by MAX_MAP_Y and MAX_MAP_X which are
+defined in defs.h. We have made a minor change to init.c. The following command
+
+SDL_ShowCursor(SDL_DISABLE);
+
+will hide the mouse cursor when it is moved inside the SDL window. In main.c,
+we load up the brick image, a background image and read the map data as
+follows:
+
+/* Load the brick image */
+
+brickImage = loadImage("gfx/brick.png");
+
+/* If we get back a NULL image, just exit */
+
+if (brickImage == NULL)
+{
+    exit(1);
+}
+
+/* Load the background image */
+
+backgroundImage = loadImage("gfx/background.png");
+
+/* If we get back a NULL image, just exit */
+
+if (backgroundImage == NULL)
+{
+    exit(1);
+}
+
+loadMap("data/maps/map01.dat");
+
+The loadImage function is our standard image loading function. The loadMap
+function takes the filename of the map file that we wish to load. We will look
+at this shortly. Once we have successfully loaded all of our resources we enter
+the standard main loop and wait for user input. We will now at the map loading
+functions. map.c contains two functions to deal with loading the map and
+rendering it to the screen.
+
+void loadMap(char *name)
+{
+    int x, y;
+    FILE *fp;
+
+    fp = fopen(name, "rb");
+
+    /* If we can't open the map then exit */
+
+    if (fp == NULL)
+    {
+        printf("Failed to open map %s\n", name);
+
+        exit(1);
+    }
+
+    /* Read the data from the file into the map */
+
+    for (y=0;y<MAX_MAP_Y;y++)
+    {
+        for (x=0;x<MAX_MAP_X;x++)
+        {
+            fscanf(fp, "%d", &map.tile[y][x]);
+        }
+    }
+
+    /* Close the file afterwards */
+
+    fclose(fp);
+}
+
+loadMap takes the filename of the map we wish to load. The data file is a very
+simple text file containing 0s and 1s to describe the map layout. We will take
+a brief look at this file:
+
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 1 1 0 1 1 0 0 0 0 0 0 0
+1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1
+1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1
+
+A 0 denotes a blank tile and 1 denotes a brick tile. Note that we must include
+either a space or carriage return between the digits so that scanf treats them
+as individual numbers and not one large number. Once we have successfully
+opened the file, we read in the map data one row at a time, one column at time.
+Once we are done we close the file. This gives us a multidimensional array
+containing our map data. The second function in the file deals with drawing the
+map:
+
+void drawMap()
+{
+    int x, y;
+    
+    /* Draw the background */
+    
+    drawImage(backgroundImage, 0, 0);
+
+    /* Draw the map */
+
+    for (y=0;y<MAX_MAP_Y;y++)
+    {
+        for (x=0;x<MAX_MAP_X;x++)
+        {
+            if (map.tile[y][x] != 0)
+            {
+                drawImage(brickImage, x * TILE_SIZE, y * TILE_SIZE);
+            }
+        }
+    }
+}
+
+First, we draw the background, just so the screen has some more colour to it.
+We then loop through the map from top to bottom, from left to right and if the
+tile at the array index is not 0, then we will draw a brick. Note that we
+multiply the x and y values up by TILE_SIZE. This is because we only have 20
+tiles horizontally and 15 vertically as defined by MAX_MAP_X and MAX_MAP_Y, so
+we need to scale up the position of the tile according to TILE_SIZE. The
+remaining files and functions have been covered in the basic tutorials so we
+will not look at them.
+
+ Conclusion
+
+Displaying a tile based map on the screen does not require a lot of code. Since
+the map data file is just a text file, it would be worth editing the file and
+changing some of the 0s and 1s to produce a different map. Ensure though that
+you have 20 digits on each row and 15 rows in the file to ensure that the file
+loads up correctly.
+
+ Downloads
+
+Source Code - tutorial11.tar.gz

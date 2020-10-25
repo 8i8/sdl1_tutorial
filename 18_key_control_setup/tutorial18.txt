@@ -1,0 +1,320 @@
+Friday, 30 September 2011
+Basic Tutorials
+Basic Game Tutorial #18 - Redefining controls
+Redefining controls
+
+ Introduction This tutorial will demonstrate how to allow a user to redefine
+the controls for a game.  Compile and run tutorial18. You will be prompted to
+enter the controls to move the ship. Once you have entered them all you can
+move the ship around and fire using the controls you defined. Pressing Escape
+will allow you to redefine the controls again, pressing escape whilst on this
+screen will exit the program.
+
+ An indepth look The basic idea behind redefining controls is that you specify
+what key or joystick button has to be pressed to perform the onscreen action.
+This is accomplished by creating another Control structure to store your
+defined values. When you press a key or joystick button, this value is compared
+against the custom controls to see if one of them matches. If it does then the
+appropriate action will be performed.  The program comprises of two parts,
+defining the controls and then moving the ship with the defined controls. In
+defs.h we add a couple of defines to assist with the program flow
+
+#define IN_REDEFINE 0
+#define IN_GAME 1
+
+and add a varaible called status to the Game struct
+
+typedef struct Game
+{
+ int score, status;
+ SDL_Surface *screen;
+ TTF_Font *font;
+ SDL_Joystick *joystick;
+} Game;
+
+We will start with defining the controls. In structs.h we add another structure
+to assist with prompting the user to input their custom controls. It is very
+basic but serves its purpose for the tutorial.
+
+typedef struct Redefine
+{
+ int redefineIndex;
+ char redefineString[255];
+} Redefine;
+
+redefineIndex simply stores what key we're trying to redefine and
+redefineString is for the onscreen text. A fully fledged game would present the
+user with a menu and allow them to choose which control they want to redefine.
+In main.c we initialize the redefineIndex 0 and blank the redefineString.
+
+/* Reset the redefine index */
+
+redefine.redefineIndex = 0;
+redefine.redefineString[0] = '\0';
+
+We then enter the main loop and examine the Game status to determine whether we
+should be prompting the user to customize the controls or playing the game.
+
+if (game.status == IN_REDEFINE)
+{
+ /* Handle the key redefining */
+ 
+ doRedefine();
+}
+
+else
+{
+ /* Get the input */
+ 
+ getInput();
+ 
+ /* Update the player's position */
+ 
+ doPlayer();
+ 
+ /* Update the entities */
+ 
+ doEntities();
+ 
+ /* Do the collisions */
+ 
+ doCollisions();
+ 
+ /* Draw everything */
+ 
+ draw();
+}
+
+We will look at the doRedefine function first. In redefine.c, we check if the
+redefineString is blank. If it is then we will use the redefineIndex to
+determine which control we are currently prompting the user to define and
+generate the appropriate string. Next we call flushInputs, this function is in
+input.c and is defined as follows
+
+void flushInputs()
+{
+ SDL_Event event;
+
+ while (SDL_PollEvent(&event)) {}
+}
+
+This code simply clears out any pending events so prevent a key press being
+picked up before the user is ready. Next we wait until the user presses a key
+or joystick button
+
+int getSingleInput()
+{
+ int key;
+ SDL_Event event;
+
+ key = -2;
+
+ if (SDL_PollEvent(&event))
+ {
+  switch (event.type)
+  {
+   case SDL_QUIT:
+    exit(0);
+   break;
+
+   case SDL_KEYDOWN:
+    key = event.key.keysym.sym;
+   break;
+   
+   case SDL_JOYAXISMOTION:
+    if (abs(event.jaxis.value) > DEAD_ZONE)
+    {
+     key = -3;
+    }
+   break;
+
+   case SDL_JOYBUTTONDOWN:
+    key = event.jbutton.button;
+   break;
+  }
+ }
+ 
+ if (key == SDLK_ESCAPE)
+ {
+  exit(0);
+ }
+
+ return key;
+}
+
+This function will return -2 if no key is pressed, so if this happens we will
+continue to wait until a valid input is received. If the user presses Escape
+during this loop then the program will simply exit. Note that while joystick
+buttons are captured and processed, joystick movement events will be ignored,
+but the program will acknowledge that a valid input has been entered. This is
+because capturing joystick movement is not very simple since it is analog
+based. Once a valid button key has been captured, we can assign the value to
+our custom Control structure. Again, we use the redefineIndex to determine
+which control to assign the value to. Next, we increment the redefineIndex to
+move to the next control and blank the redefineString.
+
+switch (redefine.redefineIndex)
+{
+ case 0:
+  customControl.left = key;
+  break;
+  
+ case 1:
+  customControl.right = key;
+  break;
+  
+ case 2:
+  customControl.up = key;
+  break;
+  
+ case 3:
+  customControl.down = key;
+  break;
+  
+ default:
+  customControl.fire = key;
+  break;
+}
+
+redefine.redefineIndex++;
+
+redefine.redefineString[0] = '\0';
+
+if (redefine.redefineIndex == 5)
+{
+ redefine.redefineIndex = 0;
+ 
+ game.status = IN_GAME;
+}
+
+If the redefineIndex is equal to 5 then we have input all the available
+controls and can then let the user try them out. We set the status of the Game
+structure to IN_GAME and reset the redefineIndex to 0. When the main loop
+checks the status of Game it will present the ship on the screen and allow the
+user to the move it around. We will now look at how the custom controls are
+handled in input.c. The follow code snippet demonstrates this
+
+case SDL_KEYDOWN:
+ key = event.key.keysym.sym;
+ 
+ if (key == customControl.left)
+ {
+  input.left = 1;
+ }
+
+ else if (key == customControl.right)
+ {
+  input.right = 1;
+ }
+
+ /* Remainder omitted */
+ break;
+
+case SDL_KEYUP:
+ key = event.key.keysym.sym;
+ 
+ if (key == customControl.left)
+ {
+  input.left = 0;
+ }
+
+ else if (key == customControl.right)
+ {
+  input.right = 0;
+ }
+ 
+ /* Remainder omitted */
+ break;
+ 
+case SDL_JOYBUTTONDOWN:
+ key = event.jbutton.button;
+ 
+ if (key == customControl.left)
+ {
+  input.left = 1;
+ }
+
+ else if (key == customControl.right)
+ {
+  input.right = 1;
+ }
+ 
+ /* Remainder omitted */
+ break;
+ 
+case SDL_JOYBUTTONUP:
+ key = event.jbutton.button;
+ 
+ if (key == customControl.left)
+ {
+  input.left = 0;
+ }
+
+   else if (key == customControl.right)
+ {
+  input.right = 0;
+ }
+ 
+ /* Remainder omitted */
+ break;
+ 
+case SDL_JOYAXISMOTION:
+ /* Horizontal movement */
+ 
+ if (event.jaxis.axis == 0)
+ {
+  if (event.jaxis.value < -DEAD_ZONE)
+  {
+   input.left = 1;
+  }
+
+  else if (event.jaxis.value > DEAD_ZONE)
+  {
+   input.right = 1;
+  }
+
+  else
+  {
+   input.left = 0;
+   input.right = 0;
+  }
+ }
+ 
+ /* Vertical movement */
+ 
+ if (event.jaxis.axis == 1)
+ {
+  if (event.jaxis.value < -DEAD_ZONE)
+  {
+   input.up = 1;
+  }
+
+  else if (event.jaxis.value > DEAD_ZONE)
+  {
+   input.down = 1;
+  }
+
+  else
+  {
+   input.up = 0;
+   input.down = 0;
+  }
+ }
+ break;
+
+As always, when an event is detected, we determine its type and get the value.
+In the case of the keyboard, we get the value of the key and check to see if it
+matches any of our custom controls. If it does then we set the relevant control
+on the input structure. The same is true for joystick buttons. As you will see,
+joystick movement handling is handled as in the previous tutorial.
+
+ Conclusion
+
+Probably the hardest thing about allowing a user to customize controls is
+building an elegant interface to allow them to do so. How major games companies
+are able to spend tens of millions of dollars on games and then overlook
+something so simple is a mystery.
+
+ Downloads
+
+Source Code - tutorial18.tar.gz

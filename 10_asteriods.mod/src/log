@@ -1,0 +1,7 @@
+main.c: In function ‘main’:
+main.c:28:14: warning: unused parameter ‘argc’ [-Wunused-parameter]
+ int main(int argc, char *argv[])
+              ^
+main.c:28:26: warning: unused parameter ‘argv’ [-Wunused-parameter]
+ int main(int argc, char *argv[])
+                          ^

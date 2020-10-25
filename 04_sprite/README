@@ -1,0 +1,91 @@
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/draw.c
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/init.c
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/input.c
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/graphics.c
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/main.c
+gcc -Wall -pedantic -Werror -fsanitize=address -c -s src/player.c
+gcc draw.o init.o input.o graphics.o main.o player.o -o tutorial04 `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer
+draw.o: In function `_GLOBAL__sub_I_00099_0_draw':
+draw.c:(.text+0x87): undefined reference to `__asan_init_v4'
+init.o: In function `init':
+init.c:(.text+0x32): undefined reference to `__asan_handle_no_return'
+init.c:(.text+0x7a): undefined reference to `__asan_report_store8'
+init.c:(.text+0xb3): undefined reference to `__asan_handle_no_return'
+init.o: In function `_GLOBAL__sub_D_00099_0_init':
+init.c:(.text+0xfa): undefined reference to `__asan_unregister_globals'
+init.o: In function `_GLOBAL__sub_I_00099_1_init':
+init.c:(.text+0x105): undefined reference to `__asan_init_v4'
+init.c:(.text+0x114): undefined reference to `__asan_register_globals'
+input.o: In function `getInput':
+input.c:(.text+0x18): undefined reference to `__asan_option_detect_stack_use_after_return'
+input.c:(.text+0x28): undefined reference to `__asan_stack_malloc_1'
+input.c:(.text+0xad): undefined reference to `__asan_handle_no_return'
+input.c:(.text+0x131): undefined reference to `__asan_report_store4'
+input.c:(.text+0x178): undefined reference to `__asan_report_store4'
+input.c:(.text+0x1bf): undefined reference to `__asan_report_store4'
+input.c:(.text+0x203): undefined reference to `__asan_report_store4'
+input.c:(.text+0x214): undefined reference to `__asan_handle_no_return'
+input.c:(.text+0x294): undefined reference to `__asan_report_store4'
+input.c:(.text+0x2db): undefined reference to `__asan_report_store4'
+input.c:(.text+0x322): undefined reference to `__asan_report_store4'
+input.c:(.text+0x366): undefined reference to `__asan_report_store4'
+input.o: In function `_GLOBAL__sub_I_00099_0_getInput':
+input.c:(.text+0x3f5): undefined reference to `__asan_init_v4'
+graphics.o: In function `loadImage':
+graphics.c:(.text+0x64): undefined reference to `__asan_report_load8'
+graphics.o: In function `drawImage':
+graphics.c:(.text+0x109): undefined reference to `__asan_option_detect_stack_use_after_return'
+graphics.c:(.text+0x119): undefined reference to `__asan_stack_malloc_1'
+graphics.c:(.text+0x1be): undefined reference to `__asan_report_load4'
+graphics.c:(.text+0x20b): undefined reference to `__asan_report_load4'
+graphics.c:(.text+0x23b): undefined reference to `__asan_report_load8'
+graphics.o: In function `loadSprite':
+graphics.c:(.text+0x2f7): undefined reference to `__asan_handle_no_return'
+graphics.c:(.text+0x33c): undefined reference to `__asan_report_store8'
+graphics.c:(.text+0x360): undefined reference to `__asan_handle_no_return'
+graphics.o: In function `getSprite':
+graphics.c:(.text+0x3a2): undefined reference to `__asan_handle_no_return'
+graphics.c:(.text+0x3d8): undefined reference to `__asan_report_load8'
+graphics.o: In function `freeSprites':
+graphics.c:(.text+0x424): undefined reference to `__asan_report_load8'
+graphics.o: In function `_GLOBAL__sub_D_00099_0_loadImage':
+graphics.c:(.text+0x481): undefined reference to `__asan_unregister_globals'
+graphics.o: In function `_GLOBAL__sub_I_00099_1_loadImage':
+graphics.c:(.text+0x48c): undefined reference to `__asan_init_v4'
+graphics.c:(.text+0x49b): undefined reference to `__asan_register_globals'
+main.o: In function `main':
+main.c:(.text+0x6c): undefined reference to `__asan_handle_no_return'
+main.o: In function `_GLOBAL__sub_D_00099_0_main':
+main.c:(.text+0x89): undefined reference to `__asan_unregister_globals'
+main.o: In function `_GLOBAL__sub_I_00099_1_main':
+main.c:(.text+0x94): undefined reference to `__asan_init_v4'
+main.c:(.text+0xa3): undefined reference to `__asan_register_globals'
+player.o: In function `initPlayer':
+player.c:(.text+0x2f): undefined reference to `__asan_report_store8'
+player.c:(.text+0x66): undefined reference to `__asan_report_store4'
+player.c:(.text+0xa8): undefined reference to `__asan_report_store4'
+player.o: In function `doPlayer':
+player.c:(.text+0xf1): undefined reference to `__asan_report_load4'
+player.c:(.text+0x134): undefined reference to `__asan_report_load4'
+player.c:(.text+0x18f): undefined reference to `__asan_report_load4'
+player.c:(.text+0x1d6): undefined reference to `__asan_report_load4'
+player.c:(.text+0x20d): undefined reference to `__asan_report_load8'
+player.c:(.text+0x24e): undefined reference to `__asan_report_load4'
+player.c:(.text+0x299): undefined reference to `__asan_report_load4'
+player.c:(.text+0x2e3): undefined reference to `__asan_report_load4'
+player.c:(.text+0x31e): undefined reference to `__asan_report_load4'
+player.c:(.text+0x379): undefined reference to `__asan_report_load4'
+player.o:player.c:(.text+0x3b8): more undefined references to `__asan_report_load4' follow
+player.o: In function `doPlayer':
+player.c:(.text+0x3ef): undefined reference to `__asan_report_load8'
+player.c:(.text+0x428): undefined reference to `__asan_report_load4'
+player.c:(.text+0x46d): undefined reference to `__asan_report_load4'
+player.o: In function `drawPlayer':
+player.c:(.text+0x4be): undefined reference to `__asan_report_load4'
+player.c:(.text+0x4f5): undefined reference to `__asan_report_load4'
+player.c:(.text+0x51e): undefined reference to `__asan_report_load8'
+player.o: In function `_GLOBAL__sub_I_00099_0_initPlayer':
+player.c:(.text+0x53b): undefined reference to `__asan_init_v4'
+collect2: error: ld returned 1 exit status
+makefile:16: recipe for target 'tutorial04' failed
+make: *** [tutorial04] Error 1

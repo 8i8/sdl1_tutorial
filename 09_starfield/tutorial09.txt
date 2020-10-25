@@ -1,0 +1,184 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #9 - Starfields
+A simple starfield
+
+ Introduction
+
+This tutorial demonstrates how to display a moving starfield on the screen.
+Compile and run tutorial09. The stars on the screen will move from right to
+left at various speeds. Pressing Escape or closing the window will exit the
+program.
+
+ An indepth look
+
+Creating a moving starfield is very simple and there are only a few files of
+note for this tutorial. First, we define a structure for our starfield in
+structs.h:
+
+typedef struct Star
+{
+    int x, y, speed;
+} Star;
+
+The x and y variables define the star's location on the screen and the speed
+defines its movement speed. Next we will look at the stars.c file. stars.c
+contains 4 functions:
+
+void resetStars()
+{
+    int i;
+
+    for (i=0;i<MAX_STARS;i++)
+    {
+        star[i].x = rand() % SCREEN_WIDTH;
+        star[i].y = rand() % SCREEN_HEIGHT;
+        star[i].speed = 1 + (rand() % 12);
+    }
+}
+
+resetStars randomly places all of the stars on the screen with a random speed.
+We need to do this before entering our main loop otherwise all of the stars
+might suddenly all appear on the right hand side of the screen which wouldlook
+wrong.
+
+void doStars()
+{
+    int i;
+
+    for (i=0;i<MAX_STARS;i++)
+    {
+        star[i].x -= star[i].speed;
+
+        if (star[i].x < 0)
+        {
+            star[i].x = SCREEN_WIDTH + rand() % 20;
+            star[i].y = rand() % SCREEN_HEIGHT;
+            star[i].speed = 1 + (rand() % 12);
+        }
+    }
+}
+
+doStars loops though all of the stars and moves them across the screen from
+right to left by subtracting their speed from their current x position. If a
+star's x position becomes negative then it has moved off the screen, so we
+randomly set its x position to be the screen's width plus a random amount to
+stop it appearing immediately and also set its y and speed.
+
+void drawStars()
+{
+    int i;
+    SDL_Rect rect;
+
+    for (i=0;i<MAX_STARS;i++)
+    {
+        if (star[i].x < SCREEN_WIDTH)
+        {
+            rect.x = star[i].x;
+            rect.y = star[i].y;
+            rect.w = 1;
+            rect.h = 1;
+    
+            SDL_FillRect(screen, &rect, getStarColor(star[i].speed));
+        }
+    }
+}
+
+drawStars is another simple function. We loop through all the stars and, if
+their x position is on the screen, we draw it using SDL_FillRect. We determine
+its colour by calling the function getStarColor which is described below.
+
+int getStarColor(int speed)
+{
+    SDL_Color color;
+    
+    switch (speed)
+    {
+        case 1:
+        case 2:
+        case 3:
+            color.r = 159;
+            color.g = 159;
+            color.b = 159;
+            break;
+                
+        case 4:
+        case 5:
+        case 6:
+            color.r = 191;
+            color.g = 191;
+            color.b = 191;
+            break;
+                
+        case 7:
+        case 8:
+        case 9:
+            color.r = 223;
+            color.g = 223;
+            color.b = 223;
+            break;
+            
+        default:
+            color.r = 255;
+            color.g = 255;
+            color.b = 255;
+            break;
+    }
+    
+    return SDL_MapRGB(screen->format, color.r, color.g, color.b);
+}
+
+getStarColor takes a simple parameter, the speed we wish to test. We then
+switch this speed and set the RGB values of the SDL_Color. The lower the speed,
+the darker the star will be, since it's further away. Finally, we use
+SDL_MapRGB to get the correct value for the colour we've chosen and return it.
+In main.c we animate the stars as follows:
+
+/* Initialise the stars */
+
+resetStars();
+
+/* Loop indefinitely for messages */
+
+while (go == 1)
+{
+    getInput();
+    
+    /* Update the stars */
+    
+    doStars();
+    
+    /* Blank the screen */
+    
+    SDL_FillRect(screen, NULL, 0);
+    
+    /* Draw the stars */
+    
+    drawStars();
+    
+    /* Swap the buffers */
+    
+    SDL_Flip(screen);
+    
+    /* Sleep briefly to stop sucking up all the CPU time */
+    
+    SDL_Delay(1);
+    
+    delay(frameLimit);
+    
+    frameLimit = SDL_GetTicks() + 16;
+}
+
+First we position the stars before entering the main loop by calling
+resetStars. Then, in our main loop, we call doStars to update their positions
+and drawStars to draw them. That's really all there is to it.
+
+ Conclusion
+
+Now that we can accept user input, perform collision detection, use SDL_TTF to
+render text to the screen and animate sprites, we can put this all together to
+make a small game. We will do this in the next tutorial.
+
+ Downloads
+
+Source Code - tutorial09.tar.gz

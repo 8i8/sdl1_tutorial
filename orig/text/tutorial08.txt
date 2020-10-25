@@ -1,0 +1,198 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #8 - Sprites and Animation
+An animating star
+
+ Introduction
+
+The easiest way to approach an animation is to think of it as a series of
+images that are shown one after the other. This tutorial will show you one way
+of achieving this.  Compile and run tutorial08. The star will spin on the
+screen until the window is closed or Escape is pressed.
+
+ An indepth look
+
+We will start this tutorial by looking at the animation file,
+data/anim/star.dat. The animation data file contains two lines. The first line
+is the number of frames in the animation and the rest are the names of the
+individual frames to load. This file is read by the loadAnimation function in
+animation.c which we will look at later. For the moment we will start with
+structs.h.  We define a structure for our animation as follows:
+
+typedef struct Animation
+{
+    int frameCount, frameIndex, counter;
+    SDL_Surface **frame;
+} Animation;
+
+The frameCount variable stores the number of frames in the Animation.
+frameIndex is the frame number that we are currently indexing. counter is the
+timer we will count down from before incrementing the frameIndex. Finally frame
+is an array of pointers to SDL_Surfaces. We will now look at the animation.c
+file. The animation.c file contains 4 functions. As always, we will look at
+each one in turn.
+
+void loadAnimation(char *name, Animation *anim)
+{
+    /* Load up the data file that describes the animation */
+    
+    int i;
+    FILE *fp = fopen(name, "rb");
+    char frameName[20];
+    
+    if (fp == NULL)
+    {
+        printf("Failed to load animation file %s\n", name);
+        
+        exit(1);
+    }
+    
+    /* Read the frame count */
+    
+    fscanf(fp, "%d", &anim->frameCount);
+    
+    /* Allocate space for the animation */
+    
+    anim->frame = (SDL_Surface **)malloc(anim->frameCount * sizeof(SDL_Surface *));
+    
+    if (anim->frame == NULL)
+    {
+        printf("Ran out of memory when creating the animation for %s\n", name);
+        
+        exit(1);
+    }
+    
+    /* Now load up each frame */
+    
+    for (i=0;iframeCount;i++)
+    {
+        fscanf(fp, "%s", frameName);
+        
+        anim->frame[i] = loadImage(frameName);
+        
+        if (anim->frame[i] == NULL)
+        {
+            printf("Failed to load animation frame %s\n", frameName);
+            
+            exit(1);
+        }
+    }
+    
+    /* Set the initial frame index to 0 */
+    
+    anim->frameIndex = 0;
+    
+    /* Set the animation counter */
+    
+    anim->counter = ANIM_SPEED;
+}
+
+The loadAnimation function takes 2 parameters, the animation file to load and
+the address of the animation structure we wish to use. Firstly, we try and read
+the animation file and if this attempt fails then we flag the error and exit.
+Once we have successfully opened the file we read the first line of the file
+which is the number of frames in the animation and set this to the frameCount.
+We then use this value to allocate the memory required for the frames. Again,
+if this fails then we flag the error and exit. Now we loop through the
+frameCount, read the location of the image and load it using the loadImage
+function. We then assign the image to the current frame of the animation. If
+any of the images fails to load the will log the error and exit. Once all the
+frames have been loaded, we assign the frameIndex to 0, which is the first
+frame in the animation and set the counter to ANIM_SPEED.
+
+void freeAnimation(Animation *anim)
+{
+    int i;
+    
+    /* Loop through each of the frames and free it */
+
+    if (anim->frame != NULL)
+    {
+        for (i=0;i<anim->frameCount;i++)
+        {
+            if (anim->frame[i] != NULL)
+            {
+                SDL_FreeSurface(anim->frame[i]);
+            }
+        }
+        
+        free(anim->frame);
+    }
+}
+
+freeAnimation works by simply looping through all of the frames in the
+animation and frees each one of them. We call this function once we are done
+with the animation. Performing the animation is relatively straight forward:
+
+void doAnimation(Animation *anim)
+{
+    anim->counter--;
+    
+    if (anim->counter <= 0)
+    {
+        anim->frameIndex++;
+        
+        if (anim->frameIndex == anim->frameCount)
+        {
+            anim->frameIndex = 0;
+        }
+        
+        anim->counter = ANIM_SPEED;
+    }
+}
+
+doAnimation is the function which updates the frames in the animation. It does
+this by decrementing the counter of the animation. When the counter reaches
+zero or less, we increase the frameIndex of the animation. If our frameIndex is
+equal to the animation's frameCount, we set the frameIndex back to 0 to
+continue to loop the animation. When we move another frame, we reset the
+counter back to ANIM_SPEED, which is defined in defs.h. The final function in
+this file draws the current animation frame:
+
+void drawAnimation(Animation *anim, int x, int y)
+{
+    drawImage(anim->frame[anim->frameIndex], x, y);
+}
+
+This function simply calls drawImage function and passes in the surface of the animation's current frameIndex. In graphics.c, we use the updateScreen function to draw our animation to the screen. In graphics.c, we call the drawAnimation function as follows:
+
+drawAnimation(&starAnim, 288, 216);
+
+We pass in the animation we wish to draw and render it to 288, 216 on the screen. Finally, in main.c, we load up the animation and update and draw it in our standard loop:
+
+/* Load up the star animation */
+
+loadAnimation("data/anim/star.dat", &starAnim);
+
+/* Loop indefinitely for messages */
+
+while (go == 1)
+{
+    getInput();
+    
+    /* Update the animation frame */
+    
+    doAnimation(&starAnim);
+    
+    /* Draw the animation to the screen */
+    
+    updateScreen();
+    
+    /* Sleep briefly to stop sucking up all the CPU time */
+    
+    delay(frameLimit);
+    
+    frameLimit = SDL_GetTicks() + 16;
+}
+
+
+ Conclusion
+
+The disadvantage to the way that we have done animation is that any game
+objects using this method will all animate in synchronization. This might not
+be a bad thing though, depending upon what you want to do. In another tutorial
+we will look at making game objects animate independently.
+
+ Downloads
+
+Source Code - tutorial08.tar.gz

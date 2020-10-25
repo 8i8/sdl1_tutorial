@@ -1,0 +1,42 @@
+grep: =: No such file or directory
+grep: 0: No such file or directory
+src/animation.c:23:	fscanf(fp, "%d", &anim->frameCount);
+src/animation.c:27:	anim->frame = (SDL_Surface **)malloc(anim->frameCount * sizeof(SDL_Surface *));
+src/animation.c:29:	if (anim->frame == NULL)
+src/animation.c:38:	for (i=0;i<anim->frameCount;i++)
+src/animation.c:42:		anim->frame[i] = loadImage(frameName);
+src/animation.c:44:		if (anim->frame[i] == NULL)
+src/animation.c:54:	anim->frameIndex = 0;
+src/animation.c:58:	anim->counter = ANIM_SPEED;
+src/animation.c:67:	if (anim->frame != NULL)
+src/animation.c:69:		for (i=0;i<anim->frameCount;i++)
+src/animation.c:71:			if (anim->frame[i] != NULL)
+src/animation.c:73:				SDL_FreeSurface(anim->frame[i]);
+src/animation.c:77:		free(anim->frame);
+src/animation.c:83:	anim->counter--;
+src/animation.c:85:	if (anim->counter <= 0)
+src/animation.c:87:		anim->frameIndex++;
+src/animation.c:89:		if (anim->frameIndex == anim->frameCount)
+src/animation.c:91:			anim->frameIndex = 0;
+src/animation.c:94:		anim->counter = ANIM_SPEED;
+src/animation.c:100:	drawImage(anim->frame[anim->frameIndex], x, y);
+Binary file src/.animation.c.swp matches
+tutorial08.txt:52:    fscanf(fp, "%d", &anim->frameCount);
+tutorial08.txt:56:    anim->frame = (SDL_Surface **)malloc(anim->frameCount * sizeof(SDL_Surface *));
+tutorial08.txt:58:    if (anim->frame == NULL)
+tutorial08.txt:71:        anim->frame[i] = loadImage(frameName);
+tutorial08.txt:73:        if (anim->frame[i] == NULL)
+tutorial08.txt:83:    anim->frameIndex = 0;
+tutorial08.txt:87:    anim->counter = ANIM_SPEED;
+tutorial08.txt:109:    if (anim->frame != NULL)
+tutorial08.txt:111:        for (i=0;i<anim->frameCount;i++)
+tutorial08.txt:113:            if (anim->frame[i] != NULL)
+tutorial08.txt:115:                SDL_FreeSurface(anim->frame[i]);
+tutorial08.txt:119:        free(anim->frame);
+tutorial08.txt:129:    anim->counter--;
+tutorial08.txt:131:    if (anim->counter <= 0)
+tutorial08.txt:133:        anim->frameIndex++;
+tutorial08.txt:135:        if (anim->frameIndex == anim->frameCount)
+tutorial08.txt:137:            anim->frameIndex = 0;
+tutorial08.txt:140:        anim->counter = ANIM_SPEED;
+tutorial08.txt:154:    drawImage(anim->frame[anim->frameIndex], x, y);

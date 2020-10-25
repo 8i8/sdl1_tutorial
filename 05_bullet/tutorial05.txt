@@ -1,0 +1,163 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #5 - Firing bullets
+
+Firing bullets
+
+ Introduction
+
+Now that we can move a sprite around the screen, we will look into firing
+bullets. These tutorials will go into less detail about loading images and
+sounds because they have been covered in earlier tutorials and the theory is
+essentially the same.  Compile and run tutorial05. You can control the ship by
+using the arrow keys (not the ones on the numeric pad). Pressing the space key
+will fire a bullet, which will move to the right from the ship's current
+position.
+
+ An indepth look
+
+To deal with the player and the bullets, we update the Entity structure as follows:
+
+typedef struct Entity
+{
+    int active;
+    int x, y, thinkTime;
+    SDL_Surface *sprite;
+    void (*action)(void);
+    void (*draw)(void);
+} Entity;
+
+We will be creating an array of Entities so the easiest way to determine
+whether an Entity is being used is to set a variable stating this. If the
+active variable is 0 then this Entity is not being used and can therefore be
+used to create a new bullet or whatever we want to create from it. The
+thinkTime variable is a timer that, in this tutorial is used to limit the
+number of bullets we can fire per second. action and draw are simply function
+pointers to our action and drawing functions respectively.  The Control
+function has another value, fire which is used to let us know that we want to
+attempt to fire a bullet.  We will first look at entites.c. This file has 5
+functions in it. We will look at these one at a time.  The clearEntities
+function loops through all of the available Entities and marks them as inactive
+using the C function memset. This ensures that at the start of the program,
+there are empty slots to fire bullets. In a larger game you would need to reset
+everything at the start of a level to make sure that when it starts there
+aren't enemies, bullets etc. appearing randomly on the screen.  getFreeEntity
+is a function that will be commonly used. It will loop through all the
+available Entities and return the index of the first one it finds that is
+marked as inactive. It will also initialise the Entity to ensure that all of
+its variables and functions are set to 0. If the function cannot find a free
+Entity, it will return -1 and you would deal with it as appropriate. In our
+code we will simply flag an error and carry on.  doEntities is used in the main
+game loop. This function loops through all the Entities and point its memory
+address to the self Entity global pointer, which we will go into more detail
+later on. If the Entity is marked as active, we call its action function.
+drawEntities is exactly the same as doEntities, except that we call the draw
+function instead.  The drawStandardEntity function is similar to the drawPlayer
+functions from previous tutorials. Note that we are using the self pointer in
+this function. You will see how this is used later.  In input.c we add add the
+reading of the space key to the inputs.  We'll now look at player.c,
+specifically the doPlayer function. At the start of the function we decrease
+the player's thinkTime, and if it is less than or equal to 0, we set it to 0.
+
+player.thinkTime--;
+
+if (player.thinkTime <= 0)
+{
+    player.thinkTime = 0;
+}
+
+The thinkTime is what controls the player's ability to fire bullets. We
+constantly decrease this value in each loop until it reaches 0. We must stop it
+from simply decreasing continously as the integer value would eventually wrap
+around and then the player would not be able to fire a bullet for a very long
+time (since it would then become positive again). The rest of the code is the
+same apart from the reading of the fire button:
+
+if (input.fire == 1)
+{
+    /* You can only fire when the thinkTime is 0 or less */
+    
+    if (player.thinkTime <= 0)
+    {
+        addBullet(player.x + player.sprite->w, player.y + (player.sprite->h / 2));
+        
+        player.thinkTime = MAX_RELOAD_TIME;
+    }
+}
+
+When the program detects the space key, it will then attempt to fire a bullet.
+A bullet can only be fired if the thinkTime is 0 or less, so if this is true
+the we call the addBullet function. This function takes the starting x and y
+coordinates, which we set to the right hand side of the player's sprite and
+roughly halfway down the player's height respectively. We will look into this
+function in more detail later. Once we have fired a bullet, we set the
+thinkTime back to the MAX_RELOAD_TIME, otherwise the player would be able to
+fire again immediately afterwards. The lower the value is for MAX_RELOAD_TIME,
+the sooner the player will be able to fire another bullet. The inverse is also
+true, so try changing this value to see what happens. It is in defs.h.
+bullet.c handles the creation and movement of the bullets. We will look at each
+of the functions in this file in turn:
+
+void addBullet(int x, int y)
+{
+    int i = getFreeEntity();
+    
+    if (i == -1)
+    {
+        printf("Couldn't get a free slot for a bullet!\n");
+        
+        return;
+    }
+    
+    entity[i].x = x;
+    entity[i].y = y;
+    entity[i].action = &moveStandardBullet;
+    entity[i].draw = &drawStandardEntity;
+    entity[i].sprite = getSprite(BULLET_SPRITE);
+    
+    /* Play a sound when the shot is fired */
+    
+    playSound(BULLET_SOUND);
+}
+
+The addBullet function first gets a free Entity by calling the getFreeEntity
+function. If we get back -1 then we ran out of Entities to create bullets from
+so we will just log the error to the console and return. Using the index number
+we get back we set the Entity's x and y using the values passed in. For the
+action, we set this to the moveStandardBullet function found later on in this
+file. We use drawStandardEntity for the draw function which we covered earlier
+in the tutorial. We also set the sprite to the BULLET_SPRITE. Finally, we call
+the playSound function to play the sound of a bullet being fired.  The second
+function, moveStandardBullet is the function called when the bullet's action
+function is called. Note that we use the self pointer which means that we don't
+need to track the Entity itself and we can also manipulate the values without
+having to return anything.
+
+static void moveStandardBullet()
+{
+    /* Move the bullet across the screen */
+    
+    self->x += BULLET_SPEED;
+    
+    /* Kill the bullet if it moves off the screen */
+    
+    if (self->x >= SCREEN_WIDTH)
+    {
+        self->active = 0;
+    }
+}
+
+The function is simple enough, the bullet will move at the speed defined by
+BULLET_SPEED and once it reaches the edge of the screen, it will be marked as
+inactive, by setting its active variable to 0. Since we are moving from left to
+right, we need to check the position of the left edge of the sprite to prevent
+it from being made inactive prematurely.
+
+ Conclusion
+
+Like the previous tutorial, firing a basic bullet is quite simple. In the next
+tutorial, we will look into collision detection.
+
+ Downloads
+
+Source Code - tutorial05.tar.gz

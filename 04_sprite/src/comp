@@ -1,0 +1,21 @@
+#!/bin/bash
+
+gcc -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer \
+defs.h \
+draw.c \
+draw.h \
+graphics.c \
+graphics.h \
+init.c \
+init.h \
+input.c \
+input.h \
+main.c \
+main.h \
+player.c \
+player.h \
+structs.h \
+ -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf
+
+rm *.gch
+

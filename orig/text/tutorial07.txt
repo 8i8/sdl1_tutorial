@@ -1,0 +1,200 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #7 - SDL_TTF
+Displaying score using SDL_TTF
+
+ Introduction
+
+In this tutorial, we will look at SDL_TTF and how we can use it to display text
+on the screen.  Compile and run tutorial07. You can control the ship by using
+the arrow keys (not the ones on the numeric pad). Pressing the space key will
+fire a bullet, which will move to the right from the ship's current position.
+If the bullet hits one of the UFOs then both it and the UFO will be removed.
+The bullet will also be removed if it goes past the right edge of the screen.
+Whenever you destroy a UFO, your score will increase by 100.
+
+ An indepth look
+
+A lot of the code has remained the same, so we will go through the files that
+have changed starting with defs.h SDL_TTF requires the SDL_TTF.h include, so we
+add it here
+
+#include "SDL/SDL_ttf.h"
+
+Now that we have done this we can look at structs.h We have added a new
+structure called game to store the score, screen and font:
+
+typedef struct Game
+{
+    int score;
+    SDL_Surface *screen;
+    TTF_Font *font;
+} Game;
+
+The font will be loaded up later on in font.c. Like SDL_Mixer, SDL_TTF must be
+initialised and closed after we have used it. We perform both these calls in
+init.c. In our init function we initialise SDL_TTF:
+
+if (TTF_Init() < 0)
+{
+    printf("Couldn't initialize SDL TTF: %s\n", SDL_GetError());
+
+    exit(1);
+}
+
+The code should be self explanitory. In our cleanup function, we need to close
+the font in the same way that have to free music and surfaces:
+
+/* Close the font */
+
+closeFont(game.font);
+
+We will look at this function later. We also need to close SDL_TTF which we do
+after we have closed all used fonts:
+
+/* Close SDL_TTF */
+
+TTF_Quit();
+
+Now that we have dealt with initialising and closing the library, we will look
+at loading and displaying a font on the screen. font.c contains 3 functions
+which we will look at one at a time.
+
+TTF_Font *loadFont(char *name, int size)
+{
+    /* Use SDL_TTF to load the font at the specified size */
+    
+    TTF_Font *font = TTF_OpenFont(name, size);
+
+    if (font == NULL)
+    {
+        printf("Failed to open Font %s: %s\n", name, TTF_GetError());
+
+        exit(1);
+    }
+    
+    return font;
+}
+
+loadFont takes 2 arguments, the filename of the file to load and the size of
+the font to create, in pt. We call the SDL_TTF function TTF_OpenFont, passing
+in the filename and the size which will return a TTF_Font. As always, we verify
+that the font was loaded correctly before we continue. If not, then we will
+exit. Otherwise we return the newly created font.
+
+void closeFont(TTF_Font *font)
+{
+    /* Close the font once we're done with it */
+    
+    if (font != NULL)
+    {
+        TTF_CloseFont(font);
+    }
+}
+
+closeFont is quite simple, we pass in the font we wish to close and pass it to
+TTF_CloseFont, provided that it is not NULL. The final, and longest function in
+the file, deals with rendering a String to the screen:
+
+void drawString(char *text, int x, int y, TTF_Font *font, int centerX, int centerY)
+{
+    SDL_Rect dest;
+    SDL_Surface *surface;
+    SDL_Color foregroundColor, backgroundColor;
+    
+    /* White text on a black background */
+    
+    foregroundColor.r = 255;
+    foregroundColor.g = 255;
+    foregroundColor.b = 255;
+    
+    backgroundColor.r = 0;
+    backgroundColor.g = 0;
+    backgroundColor.b = 0;
+    
+    /* Use SDL_TTF to generate a string image, this returns an SDL_Surface */
+
+    surface = TTF_RenderUTF8_Shaded(font, text, foregroundColor, backgroundColor);
+
+    if (surface == NULL)
+    {
+        printf("Couldn't create String %s: %s\n", text, SDL_GetError());
+
+        return;
+    }
+    
+    /* Blit the entire surface to the screen */
+
+    dest.x = (centerX == 1 ? (game.screen->w - surface->w) / 2 : x);
+    dest.y = (centerY == 1 ? (game.screen->h - surface->h) / 2 : y);
+    dest.w = surface->w;
+    dest.h = surface->h;
+
+    SDL_BlitSurface(surface, NULL, game.screen, &dest);
+    
+    /* Free the generated string image */
+
+    SDL_FreeSurface(surface);
+}
+
+The drawString function takes 6 arguments, the String to be printed, the x and
+y coordindates of the String, the font to use and whether or not to center it
+horizontally and vertically on the screen respectively. The function
+TTF_RenderUTF8_Shaded function takes 4 arguments, the font to use, String to
+print and the foreground and background colours. The colours are SDL_Color
+structures and we set the r, g and b values of the foregroundColor to 255,
+which is white. We set the backgroundColor to black, indicated by 0. This
+function will then return an SDL_Surface which we can blit to screen as usual.
+If the rendering fails for any reason then a NULL surface will be returned. If
+the centerX or centerY variables are set then we center the surface on the
+screen respectively, by taking substracting the width (or height) of the
+surface from the width (or height) of the screen and then halving the result.
+When we have blitted the surface to the screen we must free it afterwards, by
+calling SDL_FreeSurface. We will call drawString in the draw function. In
+main.c, we call the loadFont function.  We have also added made a slight change
+to collisions.c:
+
+if (collision(entity[i].x, entity[i].y, entity[i].sprite->w, entity[i].sprite->h,
+entity[j].x, entity[j].y, entity[j].sprite->w, entity[j].sprite->h) == 1)
+{
+    /* If a collision occured, remove both Entities */
+    
+    entity[j].active = 0;
+    
+    entity[i].active = 0;
+    
+    /* Add 100 points to the score */
+    
+    game.score += 100;
+}
+
+When a UFO is destroyed, we add 100 points to our score variable in our game
+structure. We will now look at our drawing function to see how the score is
+displayed on the screen.  To generate the score text, we need to create a
+String from our score. We can do this easily using the C function sprintf.
+
+char text[20];
+
+/* Blank the screen */
+
+SDL_FillRect(game.screen, NULL, 0);
+
+/* Draw the score */
+
+sprintf(text, "SCORE: %05d", game.score);
+
+drawString(text, 100, 10, game.font, 1, 0);
+
+Now that we have created a String, we can call drawString to render the text to
+100, 10. Note though that since our 5th argument is set to 1, we want to center
+the score horizontally so the value of 100 will actually be ignored.
+
+ Conclusion
+
+SDL_TTF has many ways of rendering text, ranging from quick and dirty to slow
+and beautiful. You can view the API by clicking on this link.  In the next
+tutorial we will look at one way of doing animation in SDL.
+
+ Downloads
+
+Source Code - tutorial07.tar.gz

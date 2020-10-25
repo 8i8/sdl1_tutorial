@@ -1,0 +1,85 @@
+http://www.parallelrealities.co.uk/2011/09/basic-game-tutorial-3-images-and-sound.html
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #3 - Images and Sound
+An SDL window displaying an image and playing a sound
+ Introduction
+
+This third tutorial deals with playing sound in SDL.
+Compile and run tutorial03. By pressing Space, you can play a sound clip.
+Pressing Escape or closing the window will exit.
+
+ An indepth look
+
+Two new files are introduced audio.c and audio.h.
+The defs.h file contains a new include, SDL/SDL_mixer.h. SDL is limited to
+playing WAV files so SDL_mixer allows us to also play music and use other sound
+types such as OGG. Like SDL_image, it is a very useful addition. main.h
+introduces a new structure, Mix_Chunk, which we will use to store the sound
+that we wish to play.
+main.c contains an additional function call, loadSound which is stored in audio.c.
+In init.c we initialise SDL's audio system in addition to its video system.
+
+SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)
+
+Once again, if this call fails then we cannot continue, so we would simply exit
+the program. Once the system is up and running, we attempt open the audio:
+
+Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 4096)
+
+This call can fail for a valid reason, such as another process locking the
+audio or the system simply not having a sound card. Best practice would be to
+set a flag telling the program not to play any audio, but since this tutorial
+is reliant on it, we would exit if we couldn't play any sounds. The
+Mix_OpenAudio function takes 4 arguments, the frequency of the audio, the
+format of the audio, the channels (1 for mono, 2 for stereo) and the chunksize
+of the audio. 22050 is fairly standard for most games, it can be as high as
+44100, which is CD quality, but this uses up a lot of CPU time so we leave it
+at 22050. AUDIO_S16SYS is standard 16 bit sound, there are other formats but
+some of them are not portable to other systems. 2 simply tells the audio to be
+played in stereo rather than mono (1). 4096 is a reasonable chunksize, if the
+chunksize is too big then there will be a delay between when the sound is told
+to play and when it actually does play. Conversely, if the chunksize is too
+small then the sound will stutter because of the constant filling and emptying.
+Like SDL_Surfacess, Mix_Chunks must be freed when they are no longer needed.
+The function call
+
+Mix_FreeChunk(dexterBark);
+
+frees the chunk. The audio system must also be closed at the end of the program. So
+
+Mix_CloseAudio();
+
+is called before SDL_Quit. input.c now calls the function playSound when Space
+is pressed. The function is stored in audio.c
+graphics.c has not changed.
+audio.c contains 2 function calls, loadSound and playSound. The loadSound
+function loads the audio file
+
+Mix_Chunk *sfx = Mix_LoadWAV(name);
+
+As with IMG_Load, there is no need to specify the file type as SDL_mixer will
+check the extension of the file. Mix_LoadWAV will return the loaded audio chunk
+or NULL if it fails.
+playSound will play the specified audio file by calling
+
+Mix_PlayChannel(-1, sfx, 0);
+
+The first argument is the channel to play the sound on. You may wish to do this
+if you wanted to have, say, a person speaking and you wanted to have them
+interupted. Specifying -1 tells SDL to play the sound on the first free channel
+that it finds. The second argument is the sound chunk to play and the third
+argument is the additional number of times to play the sound, so 0 means to
+play it 0 additional times and 1 means to play it 1 additional time etc.
+Specifying -1 will loop the sound forever.
+
+
+ Conclusion
+
+Now that we have dealt with opening windows, displaying images and playing
+sounds, we can start looking at intermediate topics such as input control and
+collision detection.
+
+ Downloads
+
+Source Code - tutorial03.tar.gz

@@ -1,0 +1,173 @@
+Friday, 30 September 2011
+Basic Tutorials
+Basic Game Tutorial #17 - Joystick movement
+Joystick movement
+
+ Introduction
+
+This tutorial will demonstrate how to use the joystick to move an image around
+the screen.  Compile and run tutorial17. You can control the ship by using the
+joystick's joypad or analog stick. Pressing the fire button will fire a bullet.
+
+ An indepth look
+
+The structure for the joystick is an SDL_Joystick and holds all the information
+related to the joystick. It is stored in the Game struct:
+
+typedef struct Game
+{
+ SDL_Joystick *joystick;
+ SDL_Surface *screen;
+} Game;
+
+In defs.h we add the following definition:
+
+#define DEAD_ZONE 3200
+
+This controls the joystick's analog control sensitivity, this will be discussed
+later. Before using a joystick in SDL it must be opened. This is performed in
+the SDL_Init function in init.c
+
+if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK) < 0)
+
+The number of joysticks detected by SDL can be queried by the function SDL_NumJoysticks
+
+joystickCount = SDL_NumJoysticks();
+
+Since this tutorial deals with using the joystick for movement, we will exit
+the program if no joysticks were detected. A game that allows joystick or
+keyboard input would want to handle this event differently. Now that we have
+detected a joystick, we need to open it and store the reference to the
+joystick. This is done with the following.
+
+game.joystick = SDL_JoystickOpen(0);
+
+This will open the first joystick detected by SDL. If you have multiple
+joysticks attached to the system then we can open them instead by specifying
+the index number. As always, the index number starts at 0 and must be less than
+SDL_NumJoysticks. Specifying a negative number or a number greater than
+SDL_NumJoysticks will cause a segfault. A joystick opened by SDL must be closed
+when the program exits to free the resources. The following lines
+
+buttonCount = SDL_JoystickNumButtons(game.joystick);
+
+printf("Joystick has %d buttons\n", buttonCount);
+
+printf("Joystick has %d axes\n", SDL_JoystickNumAxes(game.joystick));
+
+Are simply for information. In your game you might wish to raise an error if,
+say, the number of detected buttons is less than the number that your game
+requires. The only other addition to init.c is the closing of the joystick in
+the cleanup function.
+
+/* Close the joystick */
+
+if (game.joystick != NULL)
+{
+ SDL_JoystickClose(game.joystick);
+}
+
+This will close the joystick and free the resources allocated to it. In input.c
+we add in some extra code to detect the events produced from the joystick
+
+case SDL_JOYBUTTONDOWN:
+ switch (event.jbutton.button)
+ {
+  case 0:
+   input.fire = 1;
+  break;
+ }
+ break;
+
+case SDL_JOYBUTTONUP:
+ switch (event.jbutton.button)
+ {
+  case 0:
+   input.fire = 0;
+  break;
+ }
+ break;
+
+These two case statements deal with the first joystick button being pressed and
+released. This raises an important point: There is no way to know what button
+is the first one. On a PS2 joypad it is the Triangle button, but on other
+joysticks it might be different, so you will have to try all the buttons until
+the ship fires a shot. Don't worry though, the button doesn't change every time
+you start the program! The next code snippet deals with moving the ship.
+
+case SDL_JOYAXISMOTION:
+ /* Horizontal movement */
+ 
+ if (event.jaxis.axis == 0)
+ {
+  if (event.jaxis.value < -DEAD_ZONE)
+  {
+   input.left = 1;
+  }
+
+  else if (event.jaxis.value > DEAD_ZONE)
+  {
+   input.right = 1;
+  }
+
+  else
+  {
+   input.left = 0;
+   input.right = 0;
+  }
+ }
+ 
+ /* Vertical movement */
+ 
+ if (event.jaxis.axis == 1)
+ {
+  if (event.jaxis.value < -DEAD_ZONE)
+  {
+   input.up = 1;
+  }
+
+  else if (event.jaxis.value > DEAD_ZONE)
+  {
+   input.down = 1;
+  }
+
+  else
+  {
+   input.up = 0;
+   input.down = 0;
+  }
+ }
+ break;
+
+SDL_JOYAXISMOTION is the event produced when the directional buttons on the
+joystick are pressed. When this happens, we need to check which axis was moved,
+either the horizontal or vertical. We do this by checking the event.jaxis.axis
+value. 0 signifies a horizontal movement and 1 signifies a vertical movement.
+The next part is important when reading input from analog joysticks:
+
+if (event.jaxis.value < -DEAD_ZONE)
+{
+ input.left = 1;
+}
+
+The value generated from event.jaxis.value is between -32767 and 32767, with 0
+as no movement. Some analog joysticks can be slightly sensitive or simply
+damaged and will always generate a small movement event, which the input code
+would pick up. The best solution is to ignore these small values to stop the
+ship from moving when the player doesn't want it to. The variable DEAD_ZONE,
+tells the code to not process movement that is below its value. This is
+currently set to 3200 and is stored in defs.h. This value is fairly reasonable
+but if you are still experiencing movement when the joystick is idle you should
+increase this value and recompile. A fully fledged game would allow this value
+to be configurable by the player.
+
+ Conclusion
+
+Adding joystick support is quite simple, but as you can see, the joystick
+buttons may not be mapped in a desirable fashion. In the next tutorial, we will
+look at adding support for configuring controls.
+
+ Downloads
+
+Source Code - tutorial17.tar.gz
+

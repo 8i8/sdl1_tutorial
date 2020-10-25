@@ -1,0 +1,146 @@
+http://www.parallelrealities.co.uk/2011/09/basic-game-tutorial-1-opening-window.html
+Monday, 26 September 2011
+Basic Tutorials
+Basic Game Tutorial #1 - Opening a Window
+ Introduction
+
+Warning: These tutorials assume that you are already familiar with C
+programming and you are comfortable with advanced topics such as pointers, as
+well as using Makefiles. You are also advised to follow the tutorials in order,
+rather than just jumping around as prior knowledge is assumed throughout.
+
+This first tutorial will explain how to open a window in SDL. Before you can do
+anything however, you will need to make sure you have the relevant libraries
+for SDL installed. Linux users can download the required SDL files from their
+repository. These are the files that you need to compile and run the tutorials:
+
+    libsdl1.2-dev
+    libsdl-image1.2-dev
+    libsdl-mixer1.2-dev
+    libsdl-ttf2.0-dev
+
+Once you have installed the development files, you should attempt to compile
+the program. Open up a console window, navigate to the tutorial_01 directory
+and type
+
+make
+
+
+The program should compile successfully, but if you have not installed SDL
+correctly, you may receive an error message similar to this
+
+In file included from src/init.h:1,
+from src/init.c:1:
+src/defs.h:4:22: error: SDL/SDL.h: No such file or directory
+
+
+If this happens you should double check that SDL is in the compiler's search
+path. Once you manage to compile the program, run it by typing
+
+./tutorial01
+
+
+This will open up the window. You can close the window by either pressing
+ESCAPE or closing the window using the mouse. Congratulations, you just
+compiled and ran your first SDL program!
+
+ An indepth look
+
+If you look in the src directory, you will see that there are 7 files: defs.h,
+init.c, init.h, main.c, main.h, input.c and input.h We'll look at each of these
+in turn.  The defs.h file contains all the includes required to compile the
+program. The only include that would probably won't have seen before is the
+SDL/SDL.h include. This contains all the structures and functions required to
+compile an SDL program. More includes will be added in later tutorials. main.h
+includes the defs.h and contains our first SDL structure, SDL_Surface. This
+structure is essentially a bitmap, so it is used to display images on the
+screen. An SDL_Surface is also required when opening an SDL window.  main.c is
+our main file, which contains the standard main function. main.h is included in
+this file. The first function we call is init() which will setup our SDL
+environment for us. The cleanup function we call atexit frees any allocated
+memory and quits SDL. We then loop indefinitely and call the function
+getInput() to process messages. Below this function call however, is an SDL
+function
+
+SDL_Delay(16);
+
+
+This function will sleep for a MINIMUM of 16 milliseconds before continuing.
+The reason why this is a minimum and not an exact amount is because of OS
+scheduling and how it decides to allocate CPU time to processes. Telling your
+program to sleep prevents it from sucking up all the CPU time. 16 milliseconds
+is roughly 60 frames per second, but depending on scheduling it might run
+slightly faster or slower. Now we will look at initialising SDL. init.h is
+mostly the same as main.h, except that we reference the SDL_Surface as an
+external variable.  init.c is where the most important function calls reside.
+We include init.h and then initalise SDL by calling the function
+
+SDL_Init(SDL_INIT_VIDEO)
+
+
+This tells SDL to initialise the video system, so that we can display images.
+SDL has numerous systems which can be initialised by setting extra bits on the
+parameter. We'll be doing this in later tutorials. If this call had failed for
+any reason, the function will return -1. If this happens then we can't continue
+so we note the error and exit the program. Once SDL has intialised, we can then
+open our window:
+
+screen = SDL_SetVideoMode(640, 480, 0, SDL_HWPALETTE);
+
+
+The SDL_SetVideoMode function takes 4 parameters, width, height, bits per pixel
+(bpp) and a set of flags. The width and height are self explanatory and we set
+the bpp to 0 to make SDL use the current BPP, which in most setups will be
+either 16, 24 or 32 bit. The SDL_HWPALETTE flag tells SDL to use video memory
+for the window rather than software memory. Video memory is faster than
+software memory since it will use your dedicated graphics card. This forth
+parameter can have extra bits OR'd onto it, so we could have opened a
+fullscreen window instead, by using SDL_FULLSCREEN, but for the moment we will
+open a window. This function call returns an SDL_Surface which we reference
+using our screen surface. If this surface is NULL then we couldn't open our
+screen and can't continue, so we would note this error and exit the program.
+Finally, we set the screen title by calling
+
+SDL_WM_SetCaption(title, NULL);
+
+
+This simply sets the window's title to whatever text we want. The second
+argument is the window's title when it is minimised, but we won't worry about
+this. That's all we needed to do to initialise SDL. The cleanup function calls
+one simple function
+
+SDL_Quit();
+
+
+which closes our window, shuts down SDL and exits our program. Since we
+assigned this function to atexit(), this function will be called whenever the
+program is told to exit(). Our final pair of files deal with input handling.
+input.h contains nothing apart from our defs.h so we'll move onto input.c which
+contains a single function. SDL_Event is our event structure where we will
+store event information. We then call the function
+
+SDL_PollEvent()
+
+
+We continuously call this function while there are still messages in the queue.
+Messages are things like key presses, mouse clicks, joystick movement, window
+minimisation, closing etc. When we get a message, it is stored in the SDL_Event
+structure and we then process it by switching its type. The SDL_QUIT event type
+will appear when you attempt to close the window, so we catch this and exit the
+program cleanly. The second event type we check for is SDL_KEYDOWN. This event
+occurs when a key is pressed down. When this happens we switch our event's
+key.keysym.sym to tell us what keyboard symbol was pressed, where key is the
+SDL_KeyboardEvent structure, keysym is its SDL_keysym structure and, finally,
+sym the SDLKey that was pressed. The only key we're interested in reading at
+the moment is Escape, which is noted in SDL by SDLK_ESCAPE. We will exit the
+program if this key is pressed too.
+
+ Conclusion
+
+So you now know how to open an SDL window, wait for input and exit as
+appropriate. In the next tutorial we will look at displaying an image on the
+screen.
+
+ Downloads
+
+Source Code - tutorial01.tar.gz

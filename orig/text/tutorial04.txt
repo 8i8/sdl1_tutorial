@@ -1,0 +1,160 @@
+Tuesday, 27 September 2011
+Basic Tutorials
+Basic Game Tutorial #4 - Controlling a sprite
+	
+Moving a sprite
+
+ Introduction
+
+This tutorial will demonstrate how to move a loaded image around a screen. This
+tutorial uses the keyboard for the input but future tutorials will explain how
+to use the joystick.  Compile and run tutorial04. You can control the ship by
+using the arrow keys (not the ones on the numeric pad). The ship is constrained
+to the bounds of the window.
+
+
+ An indepth look
+
+The defs.h now contains an enumeration which will be used to store the sprites
+used in the program. This makes storing and referencing them a lot easier.
+Currently though there is only one sprite that is loaded, PLAYER_SPRITE, but
+more will be loaded in future tutorials. A new structure has been added to
+structs.h. The Entity structure allows us to store the coordinates of the ship
+as well as a pointer to its image. We also add another structure Control which
+we will use to store the inputs for our directions.  In main.c we call
+loadAllSprites to load up all of the sprites that we will use in the program
+and then initialise the player by calling initPlayer, which sets the player's
+sprite and also centers the player to the middle of the screen. We then enter
+the main loop and call getInput to collect the input keys that are pressed
+followed by doPlayer which handles the player's movement on the screen. draw
+simply draws the player's sprite to the screen. Finally, to allow smooth
+movement of the sprite on the screen, we limit the number of frames per second
+to 60. At the start of the main function, we create an unsigned int called
+frameLimit
+
+unsigned int frameLimit = SDL_GetTicks() + 16;
+
+The function SDL_GetTicks gets the number of milliseconds that have passed
+since SDL was initialised. The value of 16 will allow us to limit the number of
+frames to 60, since 1000 / 60 = 16. After we call frameLimit we set the next
+frame limit to the current ticks + 16 again:
+
+frameLimit = SDL_GetTicks() + 16;
+
+In input.c add code to read the up, down, left and right arrow keys on the
+keyboard. We detect that the up arrow on the keyboard has been pressed with the
+following code:
+
+case SDLK_UP:
+    input.up = 1;
+break;
+
+This sets the up variable in our Control structure to 1. We will read this
+value later on to test if we need to move the player's sprite up the screen.
+The reason why we store this value instead of just moving the player's sprite
+immediately is because of keyboard repeat delay. Just like when you are typing,
+if you hold down a key, the letter will be printed, followed by a delay and
+then the letter will be printed repeatedly depending upon your keyboard's
+repeat rate and delay, which is not desirable. When the key is released, we
+will set the up variable in the structure to 0:
+
+case SDLK_UP:
+    input.up = 0;
+break;
+
+The process for detecting the left, right and down key presses are the same, so
+we will not cover these.  player.c contains three functions, initPlayer,
+doPlayer and drawPlayer. We have already covered what initPlayer does, so we
+will look at drawPlayer. We take the values set in our control structure and
+test them one at a time.
+
+if (input.up == 1)
+{
+    player.y -= 3;
+
+    /* Don't allow the player to move off the screen */
+
+    if (player.y < 0)
+    {
+        player.y = 0;
+    }
+}
+
+The above code will test if the up variable in our structure has been set to 1
+and if it has then we will move the player's sprite 3 pixels up the screen. We
+need to prevent the player from being able to move off the top of the screen
+however, but this is quite simple. The top most pixel of the screen is 0, like
+in arrays and the player's sprite is drawn from the top left corner, so we just
+check to see if the player's position is less than 0 and if it is then we set
+it to 0. Preventing the player from moving off the bottom of the screen is
+similar, we just need to take some more details into account.
+
+if (input.down == 1)
+{
+    player.y += 3;
+
+    /* Don't allow the player to move off the screen */
+
+    if (player.y + player.sprite->h >= SCREEN_HEIGHT)
+    {
+        player.y = SCREEN_HEIGHT - (player.sprite->h + 1);
+    }
+}
+
+To stop the player from moving off the bottom of the screen, we need to
+includes the sprite's height in our check. Since the screen coordinates start
+at 0, the screen height will be 1 unit less, so if the player's y coordinate
+plus its height is greater than or equal to the screen's height then the
+player's sprite has left the screen. To correct this, we need to move the ship
+as close to the edge of the screen as possible without going over it, so we
+place the player's y coordinate at the screen's height and then subtract the
+sprite's height. Since the screen coordinates start at 0 though we are still 1
+pixel over so we need to move 1 additional pixel up to correct this. Logic for
+the movement of the x coordinate is the same, except we check the sprite's
+width rather than its height. After all of this, the drawPlayer function simply
+calls the drawImage function, that we have used in previous tutorials, to draw
+the player's sprite to the screen.  Finally, we will look at the drawing.
+draw.c contains two functions. The draw function blanks the screen, draws the
+player and swaps the buffers. We also sleep briefly to return some time back to
+the CPU. The second function, delay, limits the program's speed to 60 frames
+per second. Firstly, we pass in the desired tick time, which is how many ticks
+need to have passed before we can continue. We then get the current ticks:
+
+unsigned int ticks = SDL_GetTicks();
+
+Now we check to see if the tired tick time is in the past.
+
+if (frameLimit < ticks)
+{
+    return;
+}
+
+If this happens then we can continue with the program without any need to
+sleep. If the desired tick time is more than the current tick time + 16
+milliseconds, then we will sleep for (at least) 16 milliseconds and check it
+again on the next cycle.
+
+if (frameLimit > ticks + 16)
+{
+    SDL_Delay(16);
+}
+
+Finally, if the difference in the tick times is between 1 and 16 then we will
+sleep for that difference.
+
+else
+{
+    SDL_Delay(frameLimit - ticks);
+}
+
+This ensures that we limit the number of frames per second of the program and
+also return spare cycles back to the CPU.
+
+ Conclusion
+
+As you can see, controlling basic movement is quite straight forward. In the
+next tutorial, we will look at firing a bullet and how to control reload times.
+
+ Downloads
+
+Source Code - tutorial04.tar.gz
